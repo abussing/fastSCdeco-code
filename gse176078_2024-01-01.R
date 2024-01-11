@@ -1,4 +1,5 @@
-source(file = "C:/Users/andyb/Desktop/fastSCdeco code/fast_sc_deco.R")
+
+source(file = "/work/abussing/fast_sc_deco.R")
 
 
 
@@ -8,8 +9,8 @@ chunk2 <- function(x, n) {
 
 
 
-metadat <- readRDS("C:/Users/andyb/Documents/ProfHo_Research/metadat_4471")
-countmat <- readRDS("C:/Users/andyb/Documents/ProfHo_Research/countmat_4471")
+metadat <- readRDS("/work/abussing/metadat_4471")
+countmat <- readRDS("/work/abussing/countmat_4471")
 
 
 xgene <- "COL12A1"
@@ -22,16 +23,16 @@ x_use <- mean(countmat[xgene, ])
 gene_pairs <- t(combn(rownames(countmat)[-which(rownames(countmat) == xgene)], 2))
 
 
-from_where <- 10000
-to_where <- 10050
+from_where <- 1
+to_where <- 583740
 
 
 # Let's break up this gene_pairs into subsets
-nsubs <- 2
+nsubs <- 100
 
 gene_idcs_list <- chunk2(x = from_where:to_where, n = nsubs)
 
-taskid <- 1 # Sys.getenv('SLURM_ARRAY_TASK_ID')
+taskid <- Sys.getenv('SLURM_ARRAY_TASK_ID')
 taskid <- as.numeric(taskid)
 
 gene_pairs <- matrix(gene_pairs[gene_idcs_list[[taskid]], ], ncol = 2)
@@ -70,7 +71,7 @@ for (i in 1:nrow(gene_pairs)) {
   eqlist <- list(eq1, eq2, eq3, eq4, eq5)
 
 
-  gjrm_out <- gjrm(formula = eqlist, data = moddf, copula = "N", model = "B", margins = c("NBI", "NBI"), gamlssfit = FALSE, rinit = 50, rmax = 10000)
+  gjrm_out <- gjrm(formula = eqlist, data = moddf, copula = "N", model = "B", margins = c("NBI", "NBI"), gamlssfit = TRUE, rinit = 50, rmax = 10000)
 
 
   if (!gjrm_out$fit$converged) {
@@ -122,5 +123,6 @@ for (i in 1:nrow(gene_pairs)) {
 }
 
 
+saveRDS(storeres, paste("/work/abussing/meeting_2024-01-12/RDS files/allgenes_from", from_where, "_to", to_where, " ", taskid, sep="" ))
 
-print("okay")
+saveRDS(problempairs, paste("/work/abussing/meeting_2024-01-12/RDS files/problemgenes_from", from_where, "_to", to_where, " ", taskid, sep=""))
